@@ -42,11 +42,6 @@ class Route
   def last_station
     stations.last
   end
-
-  def route=(route)
-    @route = route
-    @current_station_index = 0
-  end
 end
 
 
