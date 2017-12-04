@@ -1,8 +1,8 @@
 class Station
-  attr_reader :station_name, :trains
+  attr_reader :name, :trains
 
-  def initialize(station_name)
-    @station_name = station_name
+  def initialize(name)
+    @name = name
     @trains = []
   end
 
@@ -21,7 +21,7 @@ end
 
 
 class Route
-  attr_reader :first, :last, :stations
+  attr_reader :stations
 
   def initialize(first, last)
     @stations = [first, last]
@@ -32,7 +32,7 @@ class Route
   end
 
   def remove_station(station)
-    stations.delete station
+    stations.delete(station)
   end
 
   def first_station
@@ -56,11 +56,20 @@ class Train
   end
 
   def speed_up(value)
-    @speed += value
+    if @speed - value < 0
+      @speed = 0
+    else
+      @speed += value
+    end
   end
 
   def speed_down(value)
-    @speed -= value
+    if
+      @speed - value < 0
+      @speed = 0
+    else
+      @speed -= value
+    end
   end
 
   def add_wagon
@@ -68,12 +77,13 @@ class Train
   end
 
   def remove_wagon
-    @wagons_quantity -= 1 if speed == 0
+    @wagons_quantity -= 1 if speed == 0 && @wagons_quantity > 0
   end
 
   def route=(route)
     @route = route
     @current_station_index = 0
+    current_station.receive_train(self)
   end
 
   def current_station
@@ -90,15 +100,19 @@ class Train
 
   def go_forward
     if current_station && next_station
+      current_station.delete(self)
       @current_station_index += 1
-      route.stations[@current_station_index]
+      current_station.receive_train(self)
+      current_station
     end
   end
 
   def go_back
-    if current_station && previous_station
+    if current_station && next_station
+      current_station.delete(self)
       @current_station_index -= 1
-      route.stations[@current_station_index]
+      current_station.receive_train(self)
+      current_station
     end
   end
 end
