@@ -11,7 +11,7 @@ class Station
   end
 
   def send_train(train)
-    trains.delete train
+    trains.delete(train)
   end
 
   def train_list_by_type(type)
@@ -55,8 +55,12 @@ class Train
     @speed = 0
   end
 
+  def current_speed
+    @speed
+  end
+
   def speed_up(value)
-    if @speed - value < 0
+    if @speed + value < 0
       @speed = 0
     else
       @speed += value
@@ -64,8 +68,7 @@ class Train
   end
 
   def speed_down(value)
-    if
-      @speed - value < 0
+    if @speed - value < 0
       @speed = 0
     else
       @speed -= value
@@ -73,11 +76,11 @@ class Train
   end
 
   def add_wagon
-    @wagons_quantity += 1 if speed == 0
+    @wagons_quantity += 1 if @speed == 0
   end
 
   def remove_wagon
-    @wagons_quantity -= 1 if speed == 0 && @wagons_quantity > 0
+    @wagons_quantity -= 1 if @speed == 0 && @wagons_quantity > 0
   end
 
   def route=(route)
@@ -91,7 +94,9 @@ class Train
   end
 
   def previous_station
-    route.stations[@current_station_index - 1]
+    if @current_station_index > 0
+      route.stations[@current_station_index - 1]
+    end
   end
 
   def next_station
@@ -100,7 +105,7 @@ class Train
 
   def go_forward
     if current_station && next_station
-      current_station.delete(self)
+      current_station.send_train(self)
       @current_station_index += 1
       current_station.receive_train(self)
       current_station
@@ -108,8 +113,8 @@ class Train
   end
 
   def go_back
-    if current_station && next_station
-      current_station.delete(self)
+    if current_station && previous_station
+      current_station.send_train(self)
       @current_station_index -= 1
       current_station.receive_train(self)
       current_station
