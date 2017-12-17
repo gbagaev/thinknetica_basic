@@ -1,12 +1,12 @@
-require_relative 'route'
-require_relative 'station'
-require_relative 'passenger_train'
-require_relative 'cargo_train'
-require_relative 'cargo_wagon'
-require_relative 'passenger_wagon'
+#require_relative 'route'
+#require_relative 'station'
+#require_relative 'passenger_train'
+#require_relative 'cargo_train'
+#require_relative 'cargo_wagon'
+#require_relative 'passenger_wagon'
 
 class Train
-  attr_reader :type, :route, :speed
+  attr_reader :type, :number, :route, :speed, :wagons
 
   def initialize(number, type)
     @number = number
@@ -18,25 +18,29 @@ class Train
   def speed_up(value)
     if speed + value < 0
       stop
+    elsif value < 0
+      speed
     else
       self.speed += value
     end
   end
 
   def speed_down(value)
-    if speed - value.abs < 0
+    if speed - value < 0
       stop
+    elsif value < 0
+      speed
     else
-      self.speed -= value.abs
+      self.speed -= value
     end
   end
 
-  def add_wagon(passenger_wagon)
-    wagons << passenger_wagon if stop && PassengerWagon.new
+  def add_wagon(wagon)
+    wagons << wagon if speed == 0
   end
 
-  def remove_wagon(passenger_wagon)
-    wagons.delete(passenger_wagon) if stop # && @wagons_quantity > 0
+  def remove_wagon(wagon)
+    wagons.delete(passenger_wagon) if speed == 0
   end
 
   def route=(route)
@@ -77,7 +81,7 @@ class Train
     end
   end
 
-  private
+  protected
 
   attr_writer :speed
 

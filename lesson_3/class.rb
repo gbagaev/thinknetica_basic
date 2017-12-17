@@ -1,86 +1,44 @@
-class Station
-  attr_reader :name, :trains
-
-  def initialize(name)
-    @name = name
-    @trains = []
-  end
-
-  def receive_train(train)
-    trains << train
-  end
-
-  def send_train(train)
-    trains.delete(train)
-  end
-
-  def train_list_by_type(type)
-    trains.count { |train| train.type == type }
-  end
-end
-
-
-class Route
-  attr_reader :stations
-
-  def initialize(first, last)
-    @stations = [first, last]
-  end
-
-  def add_station(station)
-    stations.insert(-2, station)
-  end
-
-  def remove_station(station)
-    stations.delete(station)
-  end
-
-  def first_station
-    stations.first
-  end
-
-  def last_station
-    stations.last
-  end
-end
-
-
 class Train
-  attr_reader :type, :wagons_quantity, :route
+  attr_reader :type, :wagons_quantity, :route, :speed
 
   def initialize(number, type, wagons_quantity)
     @number = number
     @type = type
     @wagons_quantity = wagons_quantity
+    @wagons = []
     @speed = 0
   end
 
-  def current_speed
-    @speed
-  end
-
   def speed_up(value)
-    if @speed + value < 0
-      @speed = 0
+    if speed + value < 0
+      stop
     else
-      @speed += value
+      self.speed += value
     end
   end
 
+  #def speed_down(value)
+   # if speed - value > 0 && speed - value <= speed
+    #  self.speed -= value
+    #else
+     # stop
+    #end
+  #end
+
   def speed_down(value)
-    if @speed - value < 0
-      @speed = 0
+    if speed - value.abs < 0
+      stop
     else
-      @speed -= value
+      self.speed -= value.abs
     end
   end
 
   def add_wagon
-    @wagons_quantity += 1 if @speed == 0
+    @wagons_quantity += 1 if stop
   end
 
   def remove_wagon
-    @wagons_quantity -= 1 if @speed == 0 && @wagons_quantity > 0
+    @wagons_quantity -= 1 if stop # && @wagons_quantity > 0
   end
 
   def route=(route)
@@ -119,5 +77,13 @@ class Train
       current_station.receive_train(self)
       current_station
     end
+  end
+
+  private
+
+  attr_writer :speed # чтобы субъект не мог напрямую поменять скорость
+
+  def stop
+    self.speed = 0
   end
 end
