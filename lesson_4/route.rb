@@ -12,12 +12,4 @@ class Route
   def remove_station(station)
     stations.delete(station)
   end
-
-  def first_station
-    stations.first
-  end
-
-  def last_station
-    stations.last
-  end
 end
