@@ -1,7 +1,9 @@
 require_relative 'company_name'
+require_relative 'instance_counter'
 
 class Train
   include CompanyName
+  include InstanceCounter
 
   attr_reader :type, :wagons, :route, :speed, :number
 
@@ -20,6 +22,7 @@ class Train
     @wagons = []
     stop
     self.class.all << self
+    register_instance
   end
 
   def speed_up(value)
