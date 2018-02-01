@@ -1,10 +1,25 @@
+require_relative 'company_name'
+
 class Train
+  include CompanyName
+
   attr_reader :type, :wagons, :route, :speed, :number
+
+  @@all = []
+
+  def self.all
+    @@all
+  end
+
+  def self.find(number)
+    all.find { |train| train.number == number }
+  end
 
   def initialize(number)
     @number = number
     @wagons = []
     stop
+    self.class.all << self
   end
 
   def speed_up(value)
