@@ -3,10 +3,22 @@ class Route
 
   def initialize(first, last)
     @stations = [first, last]
+    validate!
+  end
+
+  def valid?
+    validate!
+  rescue
+    false
   end
 
   def add_station(station)
-    stations.insert(-2, station)
+    return unless station
+    if stations.include?(station)
+      puts 'Route already has this station!'
+    else
+      stations.insert(-2, station)
+    end
   end
 
   def remove_station(station)
@@ -16,5 +28,12 @@ class Route
   def to_s
     stations_string = stations.map { |station| station.name }.join(', ')
     "Route: #{stations_string}"
+  end
+
+  protected
+
+  def validate!
+    raise 'You route has invalid stations!' if stations.first.class != Station || stations.last != Station
+    true
   end
 end

@@ -7,6 +7,8 @@ class Train
 
   attr_reader :type, :wagons, :route, :speed, :number
 
+  NUMBER_FORMAT = /^[a-z0-9]{3}+-*+[a-z0-9]{2}$/
+
   @@all = {}
 
   def self.all
@@ -21,8 +23,14 @@ class Train
     @number = number
     @wagons = []
     stop
+    validate!
     self.class.all[number] = self
-    register_instance
+  end
+
+  def valid?
+    validate!
+  rescue
+    false
   end
 
   def speed_up(value)
@@ -74,6 +82,11 @@ class Train
   end
 
   private
+
+  def validate!
+    raise 'Number has invalid format!' if number !~ NUMBER_FORMAT
+    true
+  end
 
   def stop
     @speed = 0
