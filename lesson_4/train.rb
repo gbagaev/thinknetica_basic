@@ -7,7 +7,7 @@ class Train
 
   attr_reader :type, :wagons, :route, :speed, :number
 
-  NUMBER_FORMAT = /^[a-z0-9]{3}+-*+[a-z0-9]{2}$/
+  NUMBER_FORMAT = /^[a-z0-9]{3}-*[a-z0-9]{2}$/
 
   @@all = {}
 
@@ -22,6 +22,7 @@ class Train
   def initialize(number)
     @number = number
     @wagons = []
+    @type ||= nil
     stop
     validate!
     self.class.all[number] = self

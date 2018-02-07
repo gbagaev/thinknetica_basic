@@ -35,6 +35,6 @@ class Station
   protected
 
   def validate!
-    raise 'You name has invalid format!' if /^[a-z]{1,8}-*\d{,2}$/i
+    raise 'You name has invalid format!' if name !~ /^[a-z]{1,8}-*\d{,2}$/i
   end
 end

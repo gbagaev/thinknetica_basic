@@ -33,7 +33,7 @@ class Route
   protected
 
   def validate!
-    raise 'You route has invalid stations!' if stations.first.class != Station || stations.last != Station
+    raise 'You route has invalid stations!' unless stations.first.is_a?(Station) && stations.last.is_a?(Station)
     true
   end
 end
