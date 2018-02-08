@@ -61,7 +61,7 @@ class Main
     return unless station
 
     stations << station
-    puts "You created the station: '#{name}'"
+    puts "You created the station: '#{station.name}'"
     station
   end
 
@@ -157,15 +157,16 @@ class Main
     nil
   end
 
-  def select_station
-    if stations.empty?
+  def select_station(stations_to_select_from = nil)
+    stations_to_select_from ||= stations
+    if stations_to_select_from.empty?
       puts 'You have no stations!'
     else
       puts 'Available stations:'
-      stations.each { |station| puts station.name }
+      stations_to_select_from.each { |station| puts station.name }
       puts 'Type station name:'
       name = gets.chomp
-      stations.find { |station| station.name == name }
+      stations_to_select_from.find { |station| station.name == name }
     end
   end
 
@@ -180,7 +181,7 @@ class Main
     route = select_route
     return unless route
     station = select_station(route.stations)
-    route.remove_station(select_station)
+    route.remove_station(station)
   end
 
   def select_route
@@ -253,7 +254,7 @@ class Main
     return unless train
     wagon = select_wagon_to_delete(train)
     train.remove_wagon(wagon)
-    puts "You removed 0wagon"
+    puts 'You removed wagon'
   end
 
   def select_wagon_to_delete(train)

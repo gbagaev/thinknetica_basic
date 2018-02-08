@@ -1,9 +1,13 @@
+require_relative 'station'
+
 class Route
   attr_reader :stations
 
   def initialize(first, last)
+    validate_station!(first)
+    validate_station!(last)
+
     @stations = [first, last]
-    validate!
   end
 
   def valid?
@@ -13,7 +17,7 @@ class Route
   end
 
   def add_station(station)
-    return unless station
+    validate_station!(station)
     if stations.include?(station)
       puts 'Route already has this station!'
     else
@@ -32,8 +36,9 @@ class Route
 
   protected
 
-  def validate!
-    raise 'You route has invalid stations!' unless stations.first.is_a?(Station) && stations.last.is_a?(Station)
+  def validate_station!(station)
+    raise "#{station.inspect} is not an instance of Station" unless station.is_a?(Station)
     true
   end
 end
+

@@ -22,7 +22,6 @@ class Train
   def initialize(number)
     @number = number
     @wagons = []
-    @type ||= nil
     stop
     validate!
     self.class.all[number] = self
