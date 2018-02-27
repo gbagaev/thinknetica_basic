@@ -14,6 +14,10 @@ class Station
     self.class.all << self
   end
 
+  def yield_trains
+    trains.each { |train| yield(train) } if block_given?
+  end
+
   def valid?
     validate!
   rescue

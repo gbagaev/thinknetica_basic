@@ -22,14 +22,10 @@ class Main
       show_main_menu
       command = gets.chomp
       case command
-        when '1' then create_station
-        when '2' then create_train
-        when '3' then route_management
-        when '4' then route_for_train
-        when '5' then add_wagon
-        when '6' then remove_wagon
-        when '7' then move_train
-        when '8' then stations_and_trains_list
+        when '1' then manage_stations
+        when '2' then manage_trains
+        when '3' then manage_routes
+        when '4' then list_program_data
         when '0' then nil
         else
           puts "Command #{command} is incorrect!"
@@ -39,21 +35,22 @@ class Main
 
   private
 
-  def show_main_menu
-    puts 'Available options:
-     ================================
-     1. Create a station
-     2. Create a train
-     3. Route management
-     4. Assign a route to the train
-     5. Add a wagon
-     6. Remove the wagon
-     7. Move the train
-     8. List of stations and trains
-     ================================
-     0. Exit the menu
-     ================================'
+  def display_stations_menu
+    puts '    Available options:
+     1. create station
+     0. Return to main menu'
     puts 'Enter the command number:'
+  end
+
+  def manage_stations
+    display_stations_menu
+    command = gets.chomp
+    case command
+      when '1' then create_station
+      when '0' then nil
+      else
+        puts "incorrect command #{command} for stations management"
+    end
   end
 
   def create_station
@@ -74,18 +71,42 @@ class Main
     nil
   end
 
+  def display_trains_menu
+    puts '    Available options:
+     1. create train
+     2. set train on route
+     3. move train
+     4. manage train wagons
+     0. Return to main menu'
+    puts 'Enter the command number:'
+  end
+
+  def manage_trains
+    display_trains_menu
+    command = gets.chomp
+    case command
+      when '1' then create_train
+      when '2' then set_train_on_route
+      when '3' then move_train
+      when '4' then manage_train_wagons
+      when '0' then nil
+      else
+        puts "incorrect command #{command} for train management"
+    end
+  end
+
   def create_train
     train = create_train!
-    return unless train
-
-    trains << train
-    puts "You selected the train: '#{train.type}' № '#{train.number}'"
-    train
+    if train
+      trains << train
+      puts "You created train: '#{train.type}' № '#{train.number}'"
+      train
+    end
   end
 
   def create_train!
-    type = select_train_type
-    puts 'Enter the train number: '
+    type = get_train_type
+    puts 'Enter train number:'
     number = gets.chomp
     if type == 'p'
       PassengerTrain.new(number)
@@ -97,32 +118,141 @@ class Main
     nil
   end
 
-  def select_train_type
-    puts 'Select the type of train:'
-    puts " - enter 'p' if you want passenger"
-    puts " - enter 'c' if you want cargo"
-    type = gets.chomp
+  def set_train_on_route
+    train = select_train
+    return unless train
+
+    route = select_route
+    train.route = route if route
+  end
+
+  def move_train
+    train = select_train
+    return unless train
+
+    if train.route
+      move_train!(train)
+    else
+      puts 'Train is not on the route'
+    end
+  end
+
+  def move_train!(train)
+    puts "type: 'f' to move forward, 'b' to move backward"
+    answer = gets.chomp
+    case answer
+      when 'f' then train.go_forward
+      when 'b' then train.go_back
+      else
+        puts "incorrect command: #{command}"
+    end
+  end
+
+  def get_train_type
+    puts 'Type type of train:'
+    puts "'p' for passenger train, 'c' for cargo train"
+    train_type = gets.chomp
     while type != 'p' && type != 'c'
       puts 'You have chosen a nonexistent type! Please, select correct type:'
-      type = gets.chomp
+      train_type = gets.chomp
     end
-    type
+    train_type
   end
 
-  def route_management
-    show_route_menu
-    route_option = gets.chomp
-    case route_option
-      when '1' then create_route
-      when '2' then add_station_to_route
-      when '3' then remove_station_from_route
-      when '0' then nil
-      else
-        puts "Command #{route_option} is incorrect!"
+  def select_train
+    if trains.empty?
+      puts 'no trains'
+    else
+      number = get_train_number
+      train = trains.find { |train| train.number == number }
+      return train if train
+      puts "no train with number #{number}"
     end
   end
 
-  def show_route_menu
+  def get_train_number
+    puts 'available trains:'
+    trains.each { |train| puts "'#{train.type}' № '#{train.number}'" }
+    puts 'Select train number:'
+    gets.chomp
+  end
+
+  def display_wagons_menu
+    puts '    available options:
+     1. add wagon
+     2. remove wagon
+     3. use wagon
+     ===============================
+
+     Enter the command number:'
+  end
+
+  def manage_train_wagons
+    train = select_train
+    return unless train
+    display_wagons_menu
+    command = gets.chomp
+    case command
+    when '1' then add_wagon(train)
+    when '2' then remove_wagon(train)
+    when '3' then use_wagon(train)
+    else
+      puts "incorrect command: #{command}"
+    end
+  end
+
+  def add_wagon(train)
+    wagon = if train.type == 'passenger'
+              PassengerWagon.new(rand(50))
+            else
+              CargoWagon.new(rand(100))
+            end
+    train.add_wagon(wagon)
+    puts "Wagon added to #{train.type} train #{train.number}"
+  end
+
+  def remove_wagon(train)
+    wagon = select_wagon(train)
+    train.remove_wagon(wagon)
+    puts 'You removed wagon'
+  end
+
+  def use_wagon(train)
+    wagon = select_wagon(train)
+    case wagon.type
+      when 'passenger'
+        take_a_seat(wagon)
+      when 'cargo'
+        use_volume(wagon)
+    end
+  end
+
+  def take_a_seat(wagon)
+    puts 'Do you want take a seat? If you want take a seat type yes'
+    answer = gets.chomp
+    wagon.take_a_seat if answer == 'yes'
+  end
+
+  def use_volume(wagon)
+    puts 'What volume do you want to use? Type number or 0'
+    amount = gets.chomp.to_f
+    wagon.use_volume(amount)
+  end
+
+  def select_wagon(train)
+    if train.wagons.empty?
+      puts "You have no wagons in train: '#{train.type}' № '#{train.number}'"
+    else
+      train.wagons.each { |wagon| puts "wagon № '#{wagon.number}'" }
+      puts 'Select wagon by number:'
+      number = gets.chomp.to_i
+      wagon = train.wagons.find { |w| w.number == number }
+      puts "No wagon with number #{number}" unless wagon
+      wagon
+    end
+  end
+
+  def display_routes_menu
     puts '    Available options:
      ====================================
      1. Create a route
@@ -132,6 +262,19 @@ class Main
      0. Return to main menu
      ===================================='
     puts 'Enter the command number:'
+  end
+
+  def manage_routes
+    display_routes_menu
+    route_option = gets.chomp
+    case route_option
+      when '1' then create_route
+      when '2' then add_station_to_route
+      when '3' then remove_station_from_route
+      when '0' then nil
+      else
+        puts "Command #{route_option} is incorrect!"
+    end
   end
 
   def create_route
@@ -157,19 +300,6 @@ class Main
     nil
   end
 
-  def select_station(stations_to_select_from = nil)
-    stations_to_select_from ||= stations
-    if stations_to_select_from.empty?
-      puts 'You have no stations!'
-    else
-      puts 'Available stations:'
-      stations_to_select_from.each { |station| puts station.name }
-      puts 'Type station name:'
-      name = gets.chomp
-      stations_to_select_from.find { |station| station.name == name }
-    end
-  end
-
   def add_station_to_route
     route = select_route
     return unless route
@@ -188,7 +318,7 @@ class Main
     if routes.empty?
       puts 'You have not route!'
     else
-      number = get_route_index
+      number = get_route_number
       route = routes[number]
       if route
         route
@@ -198,7 +328,7 @@ class Main
     end
   end
 
-  def get_route_index
+  def get_route_number
     puts 'Available routes:'
     routes.each_with_index do |route, index|
       puts "#{index} - #{route.to_s}"
@@ -207,99 +337,82 @@ class Main
     gets.chomp.to_i
   end
 
-  def route_for_train
-    train = select_train
-    return unless train
-
-    route = select_route
-    train.route = route if route
-  end
-
-  def select_train
-    if trains.empty?
-      puts 'You have no trains'
+  def select_station(stations_to_select_from = nil)
+    stations_to_select_from ||= stations
+    if stations_to_select_from.empty?
+      puts 'You have no stations!'
     else
-      number = get_train_number
-      train = trains.find { |train| train.number == number }
-      return train if train
-      puts "You have no train with number #{number}"
+      puts 'Available stations:'
+      stations_to_select_from.each { |station| puts station.name }
+      puts 'Type station name:'
+      name = gets.chomp
+      stations_to_select_from.find { |station| station.name == name }
     end
   end
 
-  def get_train_number
-    puts 'Available trains:'
-    trains.each { |train| puts "'#{train.type}' № '#{train.number}'" }
-    puts 'Select train number:'
-    gets.chomp
-  end
+  #############################################################################
 
-  def add_wagon
-    train = select_train
-    return unless train
-    wagon = create_wagon(train.type)
-    train.add_wagon(wagon)
-    puts "Wagon added to #{train.type} train #{train.number}"
-  end
-
-  def create_wagon(type)
-    if type == 'passenger'
-      PassengerWagon.new
-    else
-      CargoWagon.new
+  def list_program_data
+    puts '========================================================'
+    stations.each do |station|
+      station.yield_trains do |train|
+        puts "#{train.number}, #{train.type}, #{train.wagons.count}"
+        train.yield_wagons do |wagon|
+          wagon_data = if wagon.type == 'passenger'
+                         "seats: busy - #{wagon.busy_seats}, vacant - #{wagon.vacant_seats}"
+                       elsif wagon.type == 'cargo'
+                         "volume: used - #{wagon.used_volume}, free - #{wagon.free_volume}"
+                       end
+          puts "\t #{wagon.number}, #{wagon_data}"
+        end
+      end
     end
+    puts '========================================================'
   end
 
-  def remove_wagon
-    train = select_train
-    return unless train
-    wagon = select_wagon_to_delete(train)
-    train.remove_wagon(wagon)
-    puts 'You removed wagon'
+  #############################################################################
+
+  def show_main_menu
+    puts 'Available options:
+     ================================
+     1. Manage stations
+     2. Manage trains
+     3. Manage routes
+     4. List program data(routes, stations, trains)
+     ================================
+     0. Exit the menu
+     ================================'
+    puts 'Enter the command number:'
   end
 
-  def select_wagon_to_delete(train)
-    if train.wagons.empty?
-      puts "You have no wagons in train: '#{train.type}' № '#{train.number}'"
-    else
-      puts 'Select wagon you want to delete:'
-      train.wagons.each_with_index { |_wagon, index| puts "wagon #{index + 1}" }
-      puts 'Select wagon by number:'
-      number = gets.chomp.to_i
-      wagon = train.wagons[number - 1]
-      return wagon if wagon
-      puts "No wagon with number '#{number}'"
-    end
-  end
-
-  def move_train
-    train = select_train
-    return unless train
-
-    if train.route
-      move_train!(train)
-    else
-      puts 'Train has no route'
-    end
-  end
-
-  def move_train!(train)
-    puts "type: 'f' to move forward, 'b' to move backward"
-    answer = gets.chomp
-    while answer != 'f' && answer != 'b'
-      puts 'You have chosen wrong answer! Please, enter correct answer:'
-      answer = gets.chomp
-    end
-    train.go_forward if answer == 'f'
-    train.go_back if answer == 'b'
-  end
-
-  def stations_and_trains_list
-    puts 'Stations list:'
-    stations.each { |station| puts "'#{station.name}'" }
-    puts 'Trains list:'
-    trains.each { |train| puts "'#{train.type}' № '#{train.number}'" }
-  end
+  #############################################################################
 end
 
 program = Main.new
+st1 = Station.new('first')
+st2 = Station.new('last')
+r = Route.new(st1, st2)
+ctr = CargoTrain.new('ctr-99')
+cw1 = CargoWagon.new(100)
+cw2 = CargoWagon.new(100)
+cw1.use_volume(10)
+cw2.use_volume(20)
+ctr.add_wagon(cw1)
+ctr.add_wagon(cw2)
+ctr.route = r
+ptr = PassengerTrain.new('ptr-77')
+pw1 = PassengerWagon.new(50)
+pw2 = PassengerWagon.new(50)
+15.times { pw1.take_a_seat }
+25.times { pw2.take_a_seat }
+ptr.add_wagon(pw1)
+ptr.add_wagon(pw2)
+ptr.route = r
+
+program.routes << r
+program.stations << st1
+program.stations << st2
+program.trains << ctr
+program.trains << ptr
+
 program.options

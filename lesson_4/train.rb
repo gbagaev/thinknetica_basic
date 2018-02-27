@@ -27,6 +27,10 @@ class Train
     self.class.all[number] = self
   end
 
+  def yield_wagons
+    wagons.each { |wagon| yield(wagon) } if block_given?
+  end
+
   def valid?
     validate!
   rescue
@@ -50,7 +54,10 @@ class Train
   end
 
   def add_wagon(wagon)
-    @wagons << wagon if stopped? && wagon.is_a?(Wagon)
+    if stopped? && wagon.is_a?(Wagon) && !wagons.include?(wagon)
+      wagon.number = wagons.empty? ? 1 :  wagons.last.number + 1
+      @wagons << wagon
+    end
   end
 
   def remove_wagon(wagon)

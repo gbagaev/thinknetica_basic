@@ -5,7 +5,10 @@ class Wagon
   include CompanyName
   include InstanceCounter
 
-  def initialize
+  attr_accessor :number
+  attr_reader :type
+
+  def initialize(*)
     register_instance
   end
 end
