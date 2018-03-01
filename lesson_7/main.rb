@@ -228,11 +228,11 @@ class Main
   end
 
   def use_place(wagon)
-    puts 'How much space do you want to use? Type the number you want:'
-    amount = if wagon.type == 'passenger'
-               gets.chomp
-             else
+    amount = if wagon.type == 'cargo'
+               puts 'How much space do you want to use? Type the number you want:'
                gets.chomp.to_f
+             else
+               1
              end
     wagon.use_place(amount)
   end
