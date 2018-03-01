@@ -221,18 +221,22 @@ class Main
     wagon = select_wagon(train)
     case wagon.type
       when 'passenger'
-        use_place(wagon)
+        take_a_seat(wagon)
       when 'cargo'
         use_place(wagon)
     end
   end
 
+  def take_a_seat(wagon)
+    wagon.use_place
+  end
+
   def use_place(wagon)
+    puts 'How much space do you want to use? Type the number you want:'
     amount = if wagon.type == 'cargo'
-               puts 'How much space do you want to use? Type the number you want:'
-               gets.chomp.to_f
+               gets.chomp
              else
-               1
+               gets.chomp.to_f
              end
     wagon.use_place(amount)
   end
@@ -401,8 +405,8 @@ ctr.route = r
 ptr = PassengerTrain.new('ptr-77')
 pw1 = PassengerWagon.new(50)
 pw2 = PassengerWagon.new(50)
-pw1.use_place(15)
-pw2.use_place(25)
+10.times { pw1.use_place }
+15.times { pw2.use_place }
 ptr.add_wagon(pw1)
 ptr.add_wagon(pw2)
 ptr.route = r

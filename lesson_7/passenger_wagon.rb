@@ -4,4 +4,8 @@ class PassengerWagon < Wagon
     @type = 'passenger'
     super(all_place)
   end
+
+  def use_place
+    super(1)
+  end
 end
