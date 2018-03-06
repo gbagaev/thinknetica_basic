@@ -6,10 +6,11 @@ class Wagon
   include InstanceCounter
 
   attr_accessor :number
-  attr_reader :type, :all_place, :free_place
+  attr_reader :all_place, :free_place
 
-  def initialize(amount)
+  def initialize(amount, type)
     @all_place = amount
+    @type = type
     @free_place = amount
     validate!
     register_instance

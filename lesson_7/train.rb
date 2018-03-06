@@ -5,9 +5,9 @@ class Train
   include CompanyName
   include InstanceCounter
 
-  attr_reader :type, :wagons, :route, :speed, :number
-
   NUMBER_FORMAT = /^[a-z0-9]{3}-*[a-z0-9]{2}$/
+
+  attr_reader :type, :wagons, :route, :speed, :number
 
   @@all = {}
 
@@ -33,7 +33,7 @@ class Train
 
   def valid?
     validate!
-  rescue
+  rescue StandardError
     false
   end
 
@@ -100,7 +100,7 @@ class Train
   end
 
   def stopped?
-    @speed == 0
+    @speed.zero?
   end
 
   def current_station

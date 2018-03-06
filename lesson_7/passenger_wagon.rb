@@ -1,8 +1,6 @@
 class PassengerWagon < Wagon
-
   def initialize(all_place)
-    @type = 'passenger'
-    super(all_place)
+    super(all_place, 'passenger')
   end
 
   def use_place

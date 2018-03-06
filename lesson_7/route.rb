@@ -6,13 +6,12 @@ class Route
   def initialize(first, last)
     validate_station!(first)
     validate_station!(last)
-
     @stations = [first, last]
   end
 
   def valid?
     validate!
-  rescue
+  rescue StandardError
     false
   end
 
@@ -30,14 +29,14 @@ class Route
   end
 
   def to_s
-    stations_string = stations.map { |station| station.name }.join(', ')
+    stations_string = stations.map(&:name).join(', ')
     "Route: #{stations_string}"
   end
 
   protected
 
   def validate_station!(station)
-    raise "#{station.inspect} is not an instance of Station" unless station.is_a?(Station)
-    true
+    return true if station.is_a?(Station)
+    raise "#{station.inspect} is not an instance of Station"
   end
 end

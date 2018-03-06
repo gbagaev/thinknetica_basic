@@ -20,7 +20,7 @@ class Station
 
   def valid?
     validate!
-  rescue
+  rescue StandardError
     false
   end
 

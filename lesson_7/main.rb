@@ -10,6 +10,18 @@ require_relative 'cargo_wagon'
 class Main
   attr_reader :trains, :routes, :stations
 
+  MAIN_ACTIONS = { '1' => :manage_stations,
+                   '2' => :manage_trains,
+                   '3' => :manage_routes,
+                   '4' => :list_program_data,
+                   '0' => :do_nothing }.freeze
+
+  MANAGE_TRAIN_ACTIONS = { '1' => :create_train,
+                           '2' => :set_train_on_route,
+                           '3' => :move_train,
+                           '4' => :manage_train_wagons,
+                           '0' => :do_nothing }.freeze
+
   def initialize
     @trains = []
     @routes = []
@@ -21,19 +33,19 @@ class Main
     while command != '0'
       show_main_menu
       command = gets.chomp
-      case command
-        when '1' then manage_stations
-        when '2' then manage_trains
-        when '3' then manage_routes
-        when '4' then list_program_data
-        when '0' then nil
-        else
-          puts "Command #{command} is incorrect!"
+      action_name = MAIN_ACTIONS[command]
+
+      if action_name
+        public_send(action_name)
+      else
+        puts "Command #{command} is incorrect!"
       end
     end
   end
 
   private
+
+  def do_nothing; end
 
   def display_stations_menu
     puts '    Available options:
@@ -46,10 +58,10 @@ class Main
     display_stations_menu
     command = gets.chomp
     case command
-      when '1' then create_station
-      when '0' then nil
-      else
-        puts "incorrect command #{command} for stations management"
+    when '1' then create_station
+    when '0' then nil
+    else
+      puts "incorrect command #{command} for stations management"
     end
   end
 
@@ -84,28 +96,25 @@ class Main
   def manage_trains
     display_trains_menu
     command = gets.chomp
-    case command
-      when '1' then create_train
-      when '2' then set_train_on_route
-      when '3' then move_train
-      when '4' then manage_train_wagons
-      when '0' then nil
-      else
-        puts "incorrect command #{command} for train management"
+    action_name = MANAGE_TRAIN_ACTIONS[command]
+
+    if action_name
+      public_send(action_name)
+    else
+      puts "incorrect command #{command} for train management"
     end
   end
 
   def create_train
     train = create_train!
-    if train
-      trains << train
-      puts "You created train: '#{train.type}' № '#{train.number}'"
-      train
-    end
+    return unless train
+    trains << train
+    puts "You created train: '#{train.type}' № '#{train.number}'"
+    train
   end
 
   def create_train!
-    type = get_train_type
+    type = ask_train_type
     puts 'Enter train number:'
     number = gets.chomp
     if type == 'p'
@@ -141,14 +150,14 @@ class Main
     puts "type: 'f' to move forward, 'b' to move backward"
     answer = gets.chomp
     case answer
-      when 'f' then train.go_forward
-      when 'b' then train.go_back
-      else
-        puts "incorrect command: #{command}"
+    when 'f' then train.go_forward
+    when 'b' then train.go_back
+    else
+      puts "incorrect command: #{command}"
     end
   end
 
-  def get_train_type
+  def ask_train_type
     puts 'Type type of train:'
     puts "'p' for passenger train, 'c' for cargo train"
     train_type = gets.chomp
@@ -163,14 +172,14 @@ class Main
     if trains.empty?
       puts 'no trains'
     else
-      number = get_train_number
-      train = trains.find { |train| train.number == number }
+      number = ask_train_number
+      train = trains.find { |x| x.number == number }
       return train if train
       puts "no train with number #{number}"
     end
   end
 
-  def get_train_number
+  def ask_train_number
     puts 'available trains:'
     trains.each { |train| puts "'#{train.type}' № '#{train.number}'" }
     puts 'Select train number:'
@@ -183,7 +192,6 @@ class Main
      2. remove wagon
      3. use wagon
      ===============================
-
      Enter the command number:'
   end
 
@@ -202,11 +210,12 @@ class Main
   end
 
   def add_wagon(train)
-    wagon = if train.type == 'passenger'
-              PassengerWagon.new(rand(50))
-            else
-              CargoWagon.new(rand(100))
-            end
+    wagon =
+      if train.type == 'passenger'
+        PassengerWagon.new(rand(50))
+      else
+        CargoWagon.new(rand(100))
+      end
     train.add_wagon(wagon)
     puts "Wagon added to #{train.type} train #{train.number}"
   end
@@ -220,10 +229,10 @@ class Main
   def use_wagon(train)
     wagon = select_wagon(train)
     case wagon.type
-      when 'passenger'
-        take_a_seat(wagon)
-      when 'cargo'
-        use_place(wagon)
+    when 'passenger'
+      take_a_seat(wagon)
+    when 'cargo'
+      use_place(wagon)
     end
   end
 
@@ -233,11 +242,12 @@ class Main
 
   def use_place(wagon)
     puts 'How much space do you want to use? Type the number you want:'
-    amount = if wagon.type == 'cargo'
-               gets.chomp
-             else
-               gets.chomp.to_f
-             end
+    amount =
+      if wagon.type == 'cargo'
+        gets.chomp
+      else
+        gets.chomp.to_f
+      end
     wagon.use_place(amount)
   end
 
@@ -245,13 +255,17 @@ class Main
     if train.wagons.empty?
       puts "You have no wagons in train: '#{train.type}' № '#{train.number}'"
     else
-      train.wagons.each { |wagon| puts "wagon № '#{wagon.number}'" }
-      puts 'Select wagon by number:'
-      number = gets.chomp.to_i
-      wagon = train.wagons.find { |w| w.number == number }
-      puts "No wagon with number #{number}" unless wagon
-      wagon
+      select_wagon!(train)
     end
+  end
+
+  def select_wagon!(train)
+    train.wagons.each { |wagon| puts "wagon № '#{wagon.number}'" }
+    puts 'Select wagon by number:'
+    number = gets.chomp.to_i
+    wagon = train.wagons.find { |w| w.number == number }
+    puts "No wagon with number #{number}" unless wagon
+    wagon
   end
 
   def display_routes_menu
@@ -270,12 +284,12 @@ class Main
     display_routes_menu
     route_option = gets.chomp
     case route_option
-      when '1' then create_route
-      when '2' then add_station_to_route
-      when '3' then remove_station_from_route
-      when '0' then nil
-      else
-        puts "Command #{route_option} is incorrect!"
+    when '1' then create_route
+    when '2' then add_station_to_route
+    when '3' then remove_station_from_route
+    when '0' then nil
+    else
+      puts "Command #{route_option} is incorrect!"
     end
   end
 
@@ -320,7 +334,7 @@ class Main
     if routes.empty?
       puts 'You have not route!'
     else
-      number = get_route_number
+      number = ask_route_number
       route = routes[number]
       if route
         route
@@ -330,7 +344,7 @@ class Main
     end
   end
 
-  def get_route_number
+  def ask_route_number
     puts 'Available routes:'
     routes.each_with_index do |route, index|
       puts "#{index} - #{route.to_s}"
@@ -360,11 +374,12 @@ class Main
       station.yield_trains do |train|
         puts "#{train.number}, #{train.type}, #{train.wagons.count}"
         train.yield_wagons do |wagon|
-          wagon_data = if wagon.type == 'passenger'
-                         "seats: busy - #{wagon.used_place}, vacant - #{wagon.free_place}"
-                       elsif wagon.type == 'cargo'
-                         "volume: used - #{wagon.used_place}, free - #{wagon.free_place}"
-                       end
+          wagon_data =
+            if wagon.type == 'passenger'
+              "seats: busy - #{wagon.used_place}, vacant - #{wagon.free_place}"
+            elsif wagon.type == 'cargo'
+              "volume: used - #{wagon.used_place}, free - #{wagon.free_place}"
+            end
           puts "\t #{wagon.number}, #{wagon_data}"
         end
       end
