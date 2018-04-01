@@ -1,5 +1,5 @@
 module Accessors
-  def attr_accessor_with_history(*attrbiutes)
+  def attr_accessor_with_history(*attributes)
     attributes.each do |attribute|
       attr_instance_var = "@#{attribute}".to_sym
       history_attr = "#{attribute}_history".to_sym
@@ -9,9 +9,12 @@ module Accessors
       define_method(history_attr) { instance_variable_get(history_instance_var) || [] }
 
       define_method("#{attribute}=".to_sym) do |value|
+        old_value = instance_variable_get(attr_instance_var)
+        if old_value
+          history = public_send(history_attr)
+          instance_variable_set(history_instance_var, (history << old_value))
+        end
         instance_variable_set(attr_instance_var, value)
-        old_history = public_send(history_attr)
-        instance_variable_set(history_instance_var, (old_history << value))
       end
     end
   end
