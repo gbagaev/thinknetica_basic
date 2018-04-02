@@ -5,36 +5,45 @@ module Validation
 
   module ClassMethods
     VALIDATIONS = {
-        presence: {},
-        format: {
-            required_opts: { with: Regexp },
-            err_msg: 'validation of format requires format regexp passed by :with option'
-        },
-        type: {
-            required_opts: { type: Class },
-            err_msg: 'validation of type requires :type option. :type should be a Class'
-        }
+      presence: {},
+      format: {
+        required_opts: { with: Regexp },
+        err_msg: 'validation of format requires format regexp passed by :with option'
+      },
+      type: {
+        required_opts: { type: Class },
+        err_msg: 'validation of type requires :type option. :type should be a Class'
+      }
     }.freeze
 
     VALIDATION_TYPES = VALIDATIONS.keys.freeze
 
     def validate(attribute, validation_type, options = {})
-      if VALIDATION_TYPES.include?(validation_type) && validated_correctly?(validation_type, options)
-        @validations ||= {}
-        @validations[validation_type] ||= {}
-        @validations[validation_type][attribute] = options
-      else
-        raise ArgumentError, "validation of #{validation_type} is not implemented"
-      end
+      check_validation!(validation_type, options)
+
+      @validations ||= {}
+      @validations[validation_type] ||= {}
+      @validations[validation_type][attribute] = options
     end
 
     private
 
+    def check_validation!(validation_type, options)
+      validation_implemented?(validation_type)
+      validated_correctly?(validation_type, options)
+    end
+
+    def validation_implemented?(validation_type)
+      return true if VALIDATION_TYPES.include?(validation_type)
+
+      raise ArgumentError, "validation of #{validation_type} is not implemented"
+    end
+
     def validated_correctly?(validation_type, options)
-      validation_data = VALIDATIONS[validation_type]
-      validation_data[:required_opts].all? do |option, value|
+      VALIDATIONS.dig(validation_type, :required_opts).all? do |option, value|
         next true if options[option].is_a?(value)
-        raise ArgumentError, validation_data[:err_msg]
+
+        raise ArgumentError, VALIDATIONS.dig(validation_type, :err_msg)
       end
     end
 
@@ -67,10 +76,10 @@ module Validation
         end
       end
     end
-    unless @errors.empty?
-      error_message = @errors.map { |attribute, attr_errors| "#{attribute}: #{attr_errors.join(', ')}" }.join(";\n")
-      raise ArgumentError, error_message
-    end
+    return if @errors.empty?
+
+    error_message = @errors.map { |attribute, attr_errors| "#{attribute}: #{attr_errors.join(', ')}" }.join(";\n")
+    raise ArgumentError, error_message
   end
 
   def valid?
